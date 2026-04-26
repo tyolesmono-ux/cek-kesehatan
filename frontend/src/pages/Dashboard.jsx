@@ -114,13 +114,16 @@ const Dashboard = () => {
   // Fungsi helper untuk mendapatkan thumbnail dari URL Google Drive
   const getDriveThumbnail = (url) => {
     if (!url || typeof url !== 'string') return null;
-    // Format baru: https://drive.google.com/uc?export=view&id=FILE_ID
-    const ucMatch = url.match(/[?&]id=([-\w]+)/);
-    if (ucMatch) return `https://drive.google.com/uc?export=view&id=${ucMatch[1]}`;
-    // Format lama (fallback): https://drive.google.com/file/d/FILE_ID/view
-    const viewMatch = url.match(/\/d\/([-\w]+)/);
-    if (viewMatch) return `https://drive.google.com/uc?export=view&id=${viewMatch[1]}`;
-    return null;
+    
+    // Cari ID file (alfanumerik panjang 25+ karakter)
+    // Mencakup format /d/ID maupun ?id=ID
+    const match = url.match(/[-\w]{25,}/);
+    const fileId = match ? match[0] : null;
+
+    if (!fileId) return null;
+
+    // Gunakan format CDN Google (lh3) - Paling stabil untuk embed
+    return `https://lh3.googleusercontent.com/d/${fileId}`;
   };
 
   return (
@@ -344,32 +347,48 @@ const Dashboard = () => {
 
               return (
                 <div key={idx} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-                  <div className="h-48 bg-gray-100 relative group overflow-hidden">
+                  <div className="h-48 bg-gray-50 relative group overflow-hidden flex items-center justify-center">
                     {thumb ? (
                       <img 
                         src={thumb} 
                         alt="Bukti Bayar" 
                         className="w-full h-full object-cover transition-transform group-hover:scale-110 cursor-pointer"
                         onClick={() => window.open(buktiUrl, '_blank')}
+                        onError={(e) => {
+                          // Jika gagal muat, ganti ke icon/pesan
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
                       />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        File tidak didukung untuk thumbnail
+                    ) : null}
+                    
+                    {/* Fallback View (Tampil jika gambar error atau tidak ada thumb) */}
+                    <div className={`${thumb ? 'hidden' : 'flex'} flex-col items-center gap-2 text-gray-400 p-4 text-center`}>
+                      <div className="p-3 bg-white rounded-full shadow-sm">
+                        <Wallet className="w-6 h-6 text-emerald" />
                       </div>
-                    )}
-                    <div className="absolute top-3 right-3 px-3 py-1 bg-black/50 backdrop-blur-md text-white text-[10px] rounded-full font-bold">
+                      <p className="text-[10px] font-medium">Gambar sedang diproses atau format file tidak didukung</p>
+                      <button 
+                        onClick={() => window.open(buktiUrl, '_blank')}
+                        className="text-[10px] bg-emerald text-white px-3 py-1.5 rounded-lg font-bold hover:bg-[#3fb866] transition-colors"
+                      >
+                        BUKA BUKTI MANUAL
+                      </button>
+                    </div>
+
+                    <div className="absolute top-3 right-3 px-3 py-1 bg-black/50 backdrop-blur-md text-white text-[10px] rounded-full font-bold pointer-events-none">
                       KLIK UNTUK DETAIL
                     </div>
                   </div>
                   <div className="p-5 flex-1 flex flex-col">
                     <div className="mb-4">
-                      <p className="font-bold text-gray-800">{nama}</p>
+                      <p className="font-bold text-gray-800 line-clamp-1">{nama}</p>
                       <p className="text-emerald font-bold text-sm">Rp {Number(nominal || 0).toLocaleString('id-ID')}</p>
                     </div>
                     
                     <div className="flex-1 p-3 bg-gray-50 rounded-2xl border border-gray-100">
                       <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Keterangan Tambahan:</p>
-                      <p className="text-xs text-gray-600 italic">
+                      <p className="text-xs text-gray-600 italic line-clamp-3">
                         {keterangan || "Tidak ada keterangan tambahan."}
                       </p>
                     </div>
