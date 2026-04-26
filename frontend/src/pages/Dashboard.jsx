@@ -95,7 +95,7 @@ const Dashboard = () => {
   };
 
   if (!isAuthenticated) {
-    return <LoginModal onLoginSuccess={handleLogin} />;
+    return <LoginModal onLoginSuccess={handleLogin} isLoading={isLoading} />;
   }
 
   const chartData = [
@@ -318,7 +318,7 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {currentBelumInput.map((p, idx) => (
               <div key={idx} className="p-4 border border-gray-100 rounded-2xl bg-gray-50/50 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-400 font-bold">
+                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-400 font-bold shrink-0">
                   {p.nama.charAt(0)}
                 </div>
                 <div>

@@ -3,12 +3,12 @@ import Swal from 'sweetalert2';
 import { Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const LoginModal = ({ onLoginSuccess }) => {
+const LoginModal = ({ onLoginSuccess, isLoading }) => {
   const [password, setPassword] = useState('');
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (!password) return;
+    if (!password || isLoading) return;
     onLoginSuccess(password);
   };
 
@@ -34,13 +34,22 @@ const LoginModal = ({ onLoginSuccess }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Masukkan Password"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald focus:ring-2 focus:ring-emerald/20 transition-all outline-none bg-gray-50/50 hover:bg-white mb-6 text-center tracking-widest"
+            disabled={isLoading}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald focus:ring-2 focus:ring-emerald/20 transition-all outline-none bg-gray-50/50 hover:bg-white mb-6 text-center tracking-widest disabled:opacity-50"
           />
           <button
             type="submit"
-            className="w-full bg-emerald hover:bg-[#3fb866] text-white font-medium py-3 rounded-xl transition-all shadow-lg shadow-emerald/30"
+            disabled={isLoading || !password}
+            className="w-full bg-emerald hover:bg-[#3fb866] text-white font-medium py-3 rounded-xl transition-all shadow-lg shadow-emerald/30 disabled:bg-gray-400 disabled:shadow-none flex items-center justify-center gap-2"
           >
-            Masuk Dashboard
+            {isLoading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Memverifikasi...
+              </>
+            ) : (
+              "Masuk Dashboard"
+            )}
           </button>
         </form>
       </motion.div>
