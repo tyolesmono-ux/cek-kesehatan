@@ -196,10 +196,12 @@ const FormCekKesehatan = ({ setIsLoading }) => {
     }
   };
 
-  const namaOptions = masterData.peserta.map(p => ({
-    value: p.nama,
-    label: p.unit ? `${p.nama} - ${p.unit}` : p.nama
-  }));
+  const namaOptions = masterData.peserta
+    .filter(p => !masterData.submitted.includes(p.nama))
+    .map(p => ({
+      value: p.nama,
+      label: p.unit ? `${p.nama} - ${p.unit}` : p.nama
+    }));
 
   return (
     <motion.form 

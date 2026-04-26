@@ -85,7 +85,7 @@ const Dashboard = () => {
         <div className="flex flex-col sm:flex-row justify-between items-center bg-white/80 backdrop-blur p-4 rounded-2xl shadow-sm border border-white/50 gap-4">
           <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
             <Activity className="text-emerald" />
-            Dashboard Pimpinan
+            Cek Kesehatan CPNS <span className="text-emerald font-normal text-sm ml-1">(Dashboard)</span>
           </h1>
           <div className="flex items-center gap-3">
             <button 

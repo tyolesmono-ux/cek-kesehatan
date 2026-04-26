@@ -24,22 +24,20 @@ const Layout = ({ children }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <HeartPulse className="w-6 h-6 text-emerald" />
-            <span className="font-bold text-gray-800 tracking-tight hidden sm:inline">CekKesehatan<span className="text-emerald">.CPNS</span></span>
+            <span className="font-bold text-gray-800 tracking-tight hidden sm:inline text-lg">Cek Kesehatan <span className="text-emerald">CPNS</span></span>
           </div>
           <div className="flex gap-2 sm:gap-4">
-            <Link 
-              to="/" 
-              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-sm font-medium transition-all ${
-                !isDashboard ? 'bg-emerald text-white shadow-md shadow-emerald/20' : 'text-gray-500 hover:bg-gray-100'
-              }`}
+            <Link
+              to="/"
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-sm font-medium transition-all ${!isDashboard ? 'bg-emerald text-white shadow-md shadow-emerald/20' : 'text-gray-500 hover:bg-gray-100'
+                }`}
             >
               <ClipboardEdit className="w-4 h-4" /> <span>Isi Form</span>
             </Link>
-            <Link 
-              to="/dashboard" 
-              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-sm font-medium transition-all ${
-                isDashboard ? 'bg-emerald text-white shadow-md shadow-emerald/20' : 'text-gray-500 hover:bg-gray-100'
-              }`}
+            <Link
+              to="/dashboard"
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-sm font-medium transition-all ${isDashboard ? 'bg-emerald text-white shadow-md shadow-emerald/20' : 'text-gray-500 hover:bg-gray-100'
+                }`}
             >
               <LayoutDashboard className="w-4 h-4" /> <span>Dashboard</span>
             </Link>
@@ -57,24 +55,25 @@ const Layout = ({ children }) => {
 
 const FormPage = () => {
   const [isLoading, setIsLoading] = useState(false);
-  
+
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-lg shadow-emerald/10 mb-4">
-            <HeartPulse className="w-8 h-8 text-emerald" />
+          <div className="inline-flex items-center justify-center gap-4 w-auto h-20 rounded-2xl bg-white shadow-lg shadow-emerald/10 mb-4 p-4 px-6">
+            <img src="/PEMKOT SOLO.png" alt="Logo Pemkot Solo" className="h-full object-contain" />
+            <img src="/bkpsdmlogobaru.png" alt="Logo BKPSDM" className="h-full object-contain" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 tracking-tight">
-            Monitoring Kesehatan
+            Kegiatan Cek Kesehatan CPNS
           </h1>
           <p className="text-gray-500 text-sm sm:text-base max-w-md mx-auto">
-            Pendataan Pemeriksaan Kesehatan CPNS Kota Surakarta
+            Pendataan Pemeriksaan Kesehatan CPNS Kota Surakarta Angkatan 14 Tahun 2026
           </p>
         </div>
 
         <FormCekKesehatan setIsLoading={setIsLoading} />
-        
+
         <p className="text-center text-xs text-gray-400 mt-8 font-medium tracking-wide">
           © {new Date().getFullYear()} Pemerintah Kota Surakarta
         </p>
