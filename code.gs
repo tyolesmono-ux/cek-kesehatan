@@ -223,7 +223,8 @@ function uploadFileToDrive(base64Data, filename, mimeType) {
     // Opsional: Atur file agar siapa saja yang memiliki link bisa melihatnya (Viewer)
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     
-    return file.getUrl();
+    const fileId = file.getId();
+    return `https://drive.google.com/uc?export=view&id=${fileId}`;
   } catch (error) {
     throw new Error("Gagal mengupload file ke Drive: " + error.toString());
   }
