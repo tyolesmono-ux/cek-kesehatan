@@ -247,9 +247,9 @@ const Dashboard = () => {
                 <h3 className="text-lg font-bold text-gray-800 mb-6">Data Peserta Lengkap</h3>
 
                 {/* Desktop Table (Hidden on small screens) */}
-                <div className="hidden md:block overflow-x-auto flex-1">
+                <div className="hidden md:block overflow-auto flex-1 max-h-[500px] scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent pr-2">
                   <table className="w-full text-left border-collapse min-w-[600px]">
-                    <thead>
+                    <thead className="sticky top-0 z-10 bg-white">
                       <tr className="bg-gray-50 border-b border-gray-100 text-sm text-gray-500">
                         <th className="p-4 font-medium rounded-tl-xl">NIP</th>
                         <th className="p-4 font-medium">Nama</th>
@@ -258,7 +258,7 @@ const Dashboard = () => {
                       </tr>
                     </thead>
                     <tbody className="text-sm">
-                      {data.rows.slice(0, 10).map((row, idx) => {
+                      {data.rows.map((row, idx) => {
                         const nip = row[1];
                         const nama = row[2];
                         const kehadiran = row[5];
@@ -287,14 +287,11 @@ const Dashboard = () => {
                       )}
                     </tbody>
                   </table>
-                  {data.rows.length > 10 && (
-                    <p className="text-center text-xs text-gray-400 mt-4 italic">* Menampilkan 10 data terbaru. Gunakan fitur Export untuk melihat seluruh data.</p>
-                  )}
                 </div>
 
                 {/* Mobile Cards (Visible only on small screens) */}
-                <div className="md:hidden space-y-4">
-                  {data.rows.slice(0, 10).map((row, idx) => {
+                <div className="md:hidden space-y-4 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin">
+                  {data.rows.map((row, idx) => {
                     const nip = row[1];
                     const nama = row[2];
                     const kehadiran = row[5];
