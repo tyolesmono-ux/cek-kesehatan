@@ -4,7 +4,8 @@
  */
 const CONFIG = {
   SHEET_NAME: "Data Pendataan",
-  FOLDER_ID: "1s6PNBeYOXW4tfbovQ1C2l9fOIyqkRWvx" 
+  FOLDER_ID: "1s6PNBeYOXW4tfbovQ1C2l9fOIyqkRWvx",
+  ADMIN_PASSWORD: "Zalina_99"
 };
 
 /**
@@ -28,12 +29,14 @@ function setup() {
 }
 
 /**
- * ENDPOINT GET (API Dashboard)
- * Digunakan untuk mengambil ringkasan data (Total, Hadir, Absen, Total Dana)
+ * ENDPOINT GET (API Dashboard & Master Data)
+ * action=master -> Publik (Tanpa password)
+ * action=dashboard -> Privat (Butuh password)
  */
 function doGet(e) {
   try {
     const action = e && e.parameter ? e.parameter.action : null;
+    const pwd = e && e.parameter ? e.parameter.pwd : null;
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     
     let masterPeserta = [];
@@ -49,6 +52,7 @@ function doGet(e) {
       }
     }
 
+    // 1. Endpoint Publik (Hanya Master Data & Status Nama)
     if (action === "master") {
       let submittedNames = [];
       const sheetData = ss.getSheetByName(CONFIG.SHEET_NAME);
@@ -71,7 +75,15 @@ function doGet(e) {
       });
     }
 
-    // Default Dashboard API
+    // 2. Proteksi Password untuk Dashboard
+    if (pwd !== CONFIG.ADMIN_PASSWORD) {
+      return createJsonResponse({ 
+        status: "unauthorized", 
+        message: "Password salah atau akses ditolak." 
+      });
+    }
+
+    // Default Dashboard API (Sudah lolos password)
     const sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
     const data = sheet.getDataRange().getValues();
     

@@ -11,7 +11,10 @@ const COLORS = ['#50C878', '#F87171', '#FCD34D'];
 
 const Dashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminPass, setAdminPass] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
   const [data, setData] = useState({
     summary: { total: 0, hadir: 0, absen: 0, totalDana: 0 },
     headers: [],
@@ -19,11 +22,14 @@ const Dashboard = () => {
     masterPeserta: []
   });
 
-  const fetchData = async () => {
+  const fetchData = async (pwdToUse = adminPass) => {
+    if (!pwdToUse && !isAuthenticated) return;
+
     setIsLoading(true);
     try {
-      const response = await fetch(API_URL);
+      const response = await fetch(`${API_URL}?pwd=${encodeURIComponent(pwdToUse)}`);
       const result = await response.json();
+
       if (result.status === 'success') {
         setData({
           summary: {
@@ -36,9 +42,26 @@ const Dashboard = () => {
           rows: result.data.rows || [],
           masterPeserta: result.data.masterPeserta || []
         });
+        return true;
+      } else if (result.status === 'unauthorized') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Password Salah',
+          text: 'Akses ditolak. Silakan masukkan password yang benar.',
+          confirmButtonColor: '#50C878',
+          customClass: { popup: 'rounded-2xl' }
+        });
+        return false;
       }
     } catch (error) {
       console.error("Gagal mengambil data:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Gagal terhubung ke server.',
+        confirmButtonColor: '#50C878'
+      });
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -52,19 +75,27 @@ const Dashboard = () => {
 
   const handleExportXLSX = () => {
     if (data.rows.length === 0) return;
-    
+
     // Siapkan data untuk worksheet
     const wsData = [data.headers, ...data.rows];
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Data Peserta");
-    
+
     // Simpan file
     XLSX.writeFile(wb, `Data_Kesehatan_CPNS_${new Date().getTime()}.xlsx`);
   };
 
+  const handleLogin = async (inputPass) => {
+    const success = await fetchData(inputPass);
+    if (success) {
+      setAdminPass(inputPass);
+      setIsAuthenticated(true);
+    }
+  };
+
   if (!isAuthenticated) {
-    return <LoginModal onLoginSuccess={() => setIsAuthenticated(true)} />;
+    return <LoginModal onLoginSuccess={handleLogin} />;
   }
 
   const chartData = [
@@ -75,12 +106,16 @@ const Dashboard = () => {
   const submittedNames = data.rows.map(row => String(row[2] || "").trim());
   const belumInput = data.masterPeserta.filter(p => !submittedNames.includes(p.nama));
 
+  const totalPages = Math.ceil(belumInput.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentBelumInput = belumInput.slice(startIndex, startIndex + itemsPerPage);
+
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-ash-grey pb-12 pt-6 px-4 sm:px-8">
       {isLoading && <Spinner text="Memuat Data..." />}
-      
+
       <div className="max-w-7xl mx-auto space-y-6">
-        
+
         {/* Header Action */}
         <div className="flex flex-col sm:flex-row justify-between items-center bg-white/80 backdrop-blur p-4 rounded-2xl shadow-sm border border-white/50 gap-4">
           <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -88,19 +123,19 @@ const Dashboard = () => {
             Cek Kesehatan CPNS <span className="text-emerald font-normal text-sm ml-1">(Dashboard)</span>
           </h1>
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={fetchData}
               className="flex items-center gap-2 px-4 py-2 bg-emerald/10 text-emerald hover:bg-emerald/20 font-medium rounded-xl transition-colors text-sm"
             >
               <RefreshCw className="w-4 h-4" /> <span className="hidden sm:inline">Refresh</span>
             </button>
-            <button 
+            <button
               onClick={handleExportXLSX}
               className="flex items-center gap-2 px-4 py-2 bg-emerald hover:bg-[#3fb866] text-white font-medium rounded-xl transition-colors shadow-lg shadow-emerald/20 text-sm"
             >
               <FileDown className="w-4 h-4" /> Export XLSX
             </button>
-            <button 
+            <button
               onClick={() => setIsAuthenticated(false)}
               className="flex items-center gap-2 p-2 text-gray-400 hover:text-red-500 transition-colors"
               title="Keluar"
@@ -116,13 +151,13 @@ const Dashboard = () => {
             { title: 'Total Peserta', value: data.summary.total, icon: Users, color: 'text-blue-500', bg: 'bg-blue-50' },
             { title: 'Peserta Hadir', value: data.summary.hadir, icon: Activity, color: 'text-emerald', bg: 'bg-emerald/10' },
             { title: 'Tidak Hadir', value: data.summary.absen, icon: Activity, color: 'text-red-500', bg: 'bg-red-50' },
-            { title: 'Total Pendapatan', value: `Rp ${data.summary.totalDana.toLocaleString('id-ID')}`, icon: Wallet, color: 'text-amber-500', bg: 'bg-amber-50' }
+            { title: 'Total Transfer', value: `Rp ${data.summary.totalDana.toLocaleString('id-ID')}`, icon: Wallet, color: 'text-amber-500', bg: 'bg-amber-50' }
           ].map((stat, idx) => (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              key={idx} 
+              key={idx}
               className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4"
             >
               <div className={`p-4 rounded-2xl ${stat.bg}`}>
@@ -138,9 +173,9 @@ const Dashboard = () => {
 
         {/* Charts & Tables Container */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Chart */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 lg:col-span-1"
@@ -162,7 +197,7 @@ const Dashboard = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <RechartsTooltip 
+                  <RechartsTooltip
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                 </PieChart>
@@ -175,13 +210,13 @@ const Dashboard = () => {
           </motion.div>
 
           {/* Table Data */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 lg:col-span-2 overflow-hidden flex flex-col"
           >
             <h3 className="text-lg font-bold text-gray-800 mb-6">Data Peserta Lengkap</h3>
-            
+
             {/* Desktop Table (Hidden on small screens) */}
             <div className="hidden md:block overflow-x-auto flex-1">
               <table className="w-full text-left border-collapse min-w-[600px]">
@@ -199,17 +234,16 @@ const Dashboard = () => {
                     const nama = row[2];
                     const kehadiran = row[5];
                     const biaya = row[7];
-                    
+
                     return (
                       <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                         <td className="p-4 font-medium text-gray-700">{nip}</td>
                         <td className="p-4 text-gray-600">{nama}</td>
                         <td className="p-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            String(kehadiran).toLowerCase().includes('tidak') 
-                              ? 'bg-red-100 text-red-600' 
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${String(kehadiran).toLowerCase().includes('tidak')
+                              ? 'bg-red-100 text-red-600'
                               : 'bg-emerald/10 text-emerald'
-                          }`}>
+                            }`}>
                             {kehadiran}
                           </span>
                         </td>
@@ -244,11 +278,10 @@ const Dashboard = () => {
                         <p className="font-bold text-gray-800 text-sm">{nama}</p>
                         <p className="text-xs text-gray-500 font-mono">{nip}</p>
                       </div>
-                      <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                        String(kehadiran).toLowerCase().includes('tidak') 
-                          ? 'bg-red-100 text-red-600' 
+                      <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${String(kehadiran).toLowerCase().includes('tidak')
+                          ? 'bg-red-100 text-red-600'
                           : 'bg-emerald/10 text-emerald'
-                      }`}>
+                        }`}>
                         {kehadiran}
                       </span>
                     </div>
@@ -270,7 +303,7 @@ const Dashboard = () => {
         </div>
 
         {/* Belum Input Container */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 overflow-hidden"
@@ -281,9 +314,9 @@ const Dashboard = () => {
               {belumInput.length} Orang
             </span>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {belumInput.slice(0, 15).map((p, idx) => (
+            {currentBelumInput.map((p, idx) => (
               <div key={idx} className="p-4 border border-gray-100 rounded-2xl bg-gray-50/50 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-400 font-bold">
                   {p.nama.charAt(0)}
@@ -295,11 +328,29 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
-          {belumInput.length > 15 && (
-            <p className="text-center text-xs text-gray-400 mt-6 italic">
-              * Menampilkan 15 data. Sisa {belumInput.length - 15} orang lainnya.
-            </p>
+
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-4">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              >
+                Sebelumnya
+              </button>
+              <span className="text-sm text-gray-500 font-medium">
+                Halaman {currentPage} dari {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              >
+                Selanjutnya
+              </button>
+            </div>
           )}
+
           {belumInput.length === 0 && data.masterPeserta.length > 0 && (
             <div className="text-center p-8 text-emerald font-medium border-2 border-dashed border-emerald/20 bg-emerald/5 rounded-2xl">
               Luar biasa! Semua peserta telah melakukan input data. 🎉

@@ -8,18 +8,8 @@ const LoginModal = ({ onLoginSuccess }) => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (password === 'Zalina_99') {
-      onLoginSuccess();
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Password Salah',
-        text: 'Akses ditolak. Silakan masukkan password yang benar.',
-        confirmButtonColor: '#50C878',
-        customClass: { popup: 'rounded-2xl' }
-      });
-      setPassword('');
-    }
+    if (!password) return;
+    onLoginSuccess(password);
   };
 
   return (
